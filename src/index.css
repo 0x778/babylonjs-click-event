@@ -1,0 +1,9 @@
+* {
+  padding: 0px;
+}
+
+
+#root , body, html {
+  width: 100%;
+  height: 100%;
+}
