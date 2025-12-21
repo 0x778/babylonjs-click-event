@@ -1,27 +1,25 @@
 import React, { useRef } from "react";
 import { Engine, Scene } from "react-babylonjs";
-import { Vector3, Color3, SceneLoader, ActionManager, ExecuteCodeAction } from "@babylonjs/core";
+import { Vector3, Color3, SceneLoader, ActionManager, ExecuteCodeAction, StandardMaterial } from "@babylonjs/core";
 import "@babylonjs/loaders";
 
 const GLBScene = () => {
   const sceneRef = useRef(null);
   const meshesRef = useRef([]);
+  const originalMaterialsRef = useRef(new Map());
 
-  // Use onSceneMount to get the actual Babylon scene instance
   const onSceneMount = ({ scene }) => {
     sceneRef.current = scene;
 
-    // Load GLB
     SceneLoader.ImportMesh(
       null,
-      "/models/", // folder (served from public/)
-      "python.glb", // filename
+      "/models/", 
+      "python.glb", 
       sceneRef.current,
       (meshes) => {
         console.log("GLB loaded", meshes);
         meshesRef.current = meshes;
 
-        // If meshes exist, focus camera on first mesh center
         if (meshes.length > 0) {
           try {
             const center = meshes[0].getBoundingInfo().boundingBox.centerWorld;
@@ -36,19 +34,47 @@ const GLBScene = () => {
           }
         }
 
-        // Add click events to each mesh
         meshes.forEach((mesh) => {
+          if (!originalMaterialsRef.current.has(mesh)) {
+            const mat = mesh.material;
+            let color = null;
+            if (mat) {
+              if (mat.albedoColor && mat.albedoColor.clone) color = mat.albedoColor.clone();
+              else if (mat.baseColor && mat.baseColor.clone) color = mat.baseColor.clone();
+              else if (mat.diffuseColor && mat.diffuseColor.clone) color = mat.diffuseColor.clone();
+            }
+            originalMaterialsRef.current.set(mesh, { material: mat, color });
+          }
+
           mesh.actionManager = new ActionManager(sceneRef.current);
           mesh.actionManager.registerAction(
             new ExecuteCodeAction(ActionManager.OnPickTrigger, () => {
-              // Hide other meshes
+              // Hide other meshes and restore their colors
               meshesRef.current.forEach((m) => {
                 m.isVisible = m === mesh;
+
+                const original = originalMaterialsRef.current.get(m);
+                if (m !== mesh && original && original.color && m.material) {
+                  if ('albedoColor' in m.material && m.material.albedoColor) m.material.albedoColor = original.color.clone();
+                  else if ('baseColor' in m.material && m.material.baseColor) m.material.baseColor = original.color.clone();
+                  else if ('diffuseColor' in m.material && m.material.diffuseColor) m.material.diffuseColor = original.color.clone();
+                }
               });
 
+              // enlarge clicked mesh
               mesh.scaling = new Vector3(0.3, 0.3, 0.3);
 
-              // Highlight clicked mesh
+              if (mesh.material) {
+                if ('albedoColor' in mesh.material) mesh.material.albedoColor = Color3.Red();
+                else if ('baseColor' in mesh.material) mesh.material.baseColor = Color3.Red();
+                else if ('diffuseColor' in mesh.material) mesh.material.diffuseColor = Color3.Red();
+              } else {
+                const mat = new StandardMaterial(`mat_highlight_${mesh.name}`, sceneRef.current);
+                mat.diffuseColor = Color3.Red();
+                mesh.material = mat;
+              }
+
+              // Edge highlight
               if (mesh.enableEdgesRendering) {
                 mesh.enableEdgesRendering();
                 mesh.edgesWidth = 4.0;
@@ -58,12 +84,8 @@ const GLBScene = () => {
           );
         });
       },
-      // onProgress
       (evt) => {
-        // Optional: show progress
-        // console.log('GLB progress', evt);
       },
-      // onError
       (scene, message, exception) => {
         console.error("Failed to load GLB:", message, exception);
       }
