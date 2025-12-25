@@ -15,8 +15,8 @@ const GLBScene = () => {
 
     SceneLoader.ImportMesh(
       null,
-      "/models/", 
-      "python.glb", 
+      "/models/",
+      "python.glb",
       sceneRef.current,
       (meshes) => {
         console.log("GLB loaded", meshes);
@@ -193,8 +193,7 @@ const GLBScene = () => {
           );
         });
       },
-      () => {
-      },
+      () => {},
       (scene, message, exception) => {
         console.error("Failed to load GLB:", message, exception);
       }
@@ -203,29 +202,39 @@ const GLBScene = () => {
     console.log("Scene mounted and loader started");
   };
 
-
   return (
-    <div style={{ width: '100%', height: '100%', position: 'relative' }}>
-      <div style={{ position: 'absolute', top: 10, left: 10, zIndex: 999 }}>
-        <button className="ui-btn ui-btn--danger" onClick={() => {
-          const mesh = selectedMeshRef.current;
-          if (!mesh) return;
-          try { mesh.dispose(true, true); } catch { /* ignore */ }
-          meshesRef.current = meshesRef.current.filter(m => m !== mesh);
-          originalMaterialsRef.current.delete(mesh);
-          selectedMeshRef.current = null;
-          setSelectedName(null);
-        }} >Delete Geometry</button>
-        <button className="ui-btn ui-btn--accent" onClick={() => {
-          const mesh = selectedMeshRef.current;
-          if (!mesh) return;
-          const factor = 1.2;
-          if (mesh.scaling && typeof mesh.scaling.scaleInPlace === 'function') {
-            mesh.scaling.scaleInPlace(factor);
-          } else {
-            mesh.scaling = new Vector3(factor, factor, factor);
-          }
-        }}>Scale Geometry</button>
+    <div className="w-full h-full relative">
+      <div className="absolute top-3 left-3 z-50 flex items-center">
+        <button
+          className="inline-flex items-center px-3 py-3 bg-red-50 text-red-700 border border-red-200 shadow-sm hover:bg-red-100 active:scale-95 focus:outline-none focus:ring-2 focus:ring-red-300 mr-2"
+          onClick={() => {
+            const mesh = selectedMeshRef.current;
+            if (!mesh) return;
+            try { mesh.dispose(true, true); } catch { /* ignore */ }
+            meshesRef.current = meshesRef.current.filter(m => m !== mesh);
+            originalMaterialsRef.current.delete(mesh);
+            selectedMeshRef.current = null;
+            setSelectedName(null);
+          }}
+        >
+          Delete Geometry
+        </button>
+
+        <button
+          className="inline-flex items-center px-5 py-3  bg-sky-600 text-white hover:bg-sky-700 shadow-sm active:scale-95 focus:outline-none focus:ring-2 focus:ring-sky-300"
+          onClick={() => {
+            const mesh = selectedMeshRef.current;
+            if (!mesh) return;
+            const factor = 1.2;
+            if (mesh.scaling && typeof mesh.scaling.scaleInPlace === 'function') {
+              mesh.scaling.scaleInPlace(factor);
+            } else {
+              mesh.scaling = new Vector3(factor, factor, factor);
+            }
+          }}
+        >
+          Scale Geometry
+        </button>
       </div>
 
       <Engine antialias adaptToDeviceRatio canvasId="babylonJS">
