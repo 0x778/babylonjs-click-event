@@ -7,3 +7,44 @@
   width: 100%;
   height: 100%;
 }
+
+/* Classic-modern button styles used by scene overlay */
+.ui-btn {
+  display: inline-block;
+  font-family: Inter, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial;
+  font-size: 14px;
+  padding: 8px 14px;
+  border-radius: 8px;
+  border: 1px solid rgba(0,0,0,0.12);
+  background: linear-gradient(180deg, #ffffff 0%, #f3f4f6 100%);
+  color: #111827;
+  box-shadow: 0 2px 6px rgba(16,24,40,0.06), inset 0 -1px 0 rgba(255,255,255,0.6);
+  cursor: pointer;
+  transition: transform 120ms ease, box-shadow 120ms ease, background 120ms ease;
+}
+.ui-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(16,24,40,0.12);
+}
+.ui-btn:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 6px rgba(16,24,40,0.08);
+}
+.ui-btn:focus { outline: 2px solid rgba(59,130,246,0.25); outline-offset: 2px; }
+
+.ui-btn--accent {
+  background: linear-gradient(180deg, #0ea5e9 0%, #0284c7 100%);
+  color: #fff;
+  border-color: rgba(2,6,23,0.2);
+  box-shadow: 0 6px 18px rgba(2,6,23,0.12);
+}
+.ui-btn--accent:hover { transform: translateY(-1px) scale(1.01); }
+
+.ui-btn--danger {
+  background: linear-gradient(180deg, #fff1f2 0%, #fee2e2 100%);
+  color: #b91c1c;
+  border-color: rgba(185,28,28,0.12);
+}
+.ui-btn--danger:hover { background: linear-gradient(180deg, #ffecec 0%, #ffd6d6 100%); }
+
+.ui-btn + .ui-btn { margin-left: 8px; }

@@ -1,4 +1,4 @@
-import React, { useRef } from "react";
+import React, { useRef, useState } from "react";
 import { Engine, Scene } from "react-babylonjs";
 import { Vector3, Color3, SceneLoader, ActionManager, ExecuteCodeAction, StandardMaterial } from "@babylonjs/core";
 import "@babylonjs/loaders";
@@ -7,6 +7,8 @@ const GLBScene = () => {
   const sceneRef = useRef(null);
   const meshesRef = useRef([]);
   const originalMaterialsRef = useRef(new Map());
+  const selectedMeshRef = useRef(null);
+  const [, setSelectedName] = useState(null);
 
   const onSceneMount = ({ scene }) => {
     sceneRef.current = scene;
@@ -84,6 +86,9 @@ const GLBScene = () => {
                   if (m.disableEdgesRendering) m.disableEdgesRendering();
                 });
                 mesh.metadata._highlighted = false;
+                // clear selection
+                selectedMeshRef.current = null;
+                setSelectedName(null);
                 return;
               }
 
@@ -181,6 +186,9 @@ const GLBScene = () => {
               }
 
               mesh.metadata._highlighted = true;
+              // set selection
+              selectedMeshRef.current = mesh;
+              setSelectedName(mesh.name || mesh.id || "selected");
             })
           );
         });
@@ -197,22 +205,46 @@ const GLBScene = () => {
 
 
   return (
-    <Engine antialias adaptToDeviceRatio canvasId="babylonJS">
-      <Scene onSceneMount={onSceneMount}>
-        <arcRotateCamera
-          name="camera1"
-          target={Vector3.Zero()}
-          alpha={Math.PI / 2}
-          beta={Math.PI / 4}
-          radius={10}
-        />
-        <hemisphericLight
-          name="light1"
-          intensity={0.7}
-          direction={Vector3.Up()}
-        />
-      </Scene>
-    </Engine>
+    <div style={{ width: '100%', height: '100%', position: 'relative' }}>
+      <div style={{ position: 'absolute', top: 10, left: 10, zIndex: 999 }}>
+        <button className="ui-btn ui-btn--danger" onClick={() => {
+          const mesh = selectedMeshRef.current;
+          if (!mesh) return;
+          try { mesh.dispose(true, true); } catch { /* ignore */ }
+          meshesRef.current = meshesRef.current.filter(m => m !== mesh);
+          originalMaterialsRef.current.delete(mesh);
+          selectedMeshRef.current = null;
+          setSelectedName(null);
+        }} >Delete Geometry</button>
+        <button className="ui-btn ui-btn--accent" onClick={() => {
+          const mesh = selectedMeshRef.current;
+          if (!mesh) return;
+          const factor = 1.2;
+          if (mesh.scaling && typeof mesh.scaling.scaleInPlace === 'function') {
+            mesh.scaling.scaleInPlace(factor);
+          } else {
+            mesh.scaling = new Vector3(factor, factor, factor);
+          }
+        }}>Scale Geometry</button>
+      </div>
+
+      <Engine antialias adaptToDeviceRatio canvasId="babylonJS">
+        <Scene onSceneMount={onSceneMount}>
+          <arcRotateCamera
+            name="camera1"
+            target={Vector3.Zero()}
+            alpha={Math.PI / 2}
+            beta={Math.PI / 4}
+            radius={10}
+          />
+          <hemisphericLight
+            name="light1"
+            intensity={0.7}
+            direction={Vector3.Up()}
+          />
+        </Scene>
+      </Engine>
+    </div>
   );
 };
 
